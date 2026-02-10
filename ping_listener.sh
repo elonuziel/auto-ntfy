@@ -9,11 +9,24 @@ sleep 30
 NTFY_TOPIC="YOUR_TOPIC_HERE"
 NTFY_URL="https://ntfy.sh/${NTFY_TOPIC}"
 LOG_FILE="/sdcard/ping_listener.log"
+LOCK_FILE="/sdcard/ping_listener.lock"
 
 # Simple logging function
 log() {
     echo "$(date) - $1" >> "$LOG_FILE"
 }
+
+if [ -f "$LOCK_FILE" ]; then
+    EXISTING_PID=$(cat "$LOCK_FILE" 2>/dev/null)
+    if [ -n "$EXISTING_PID" ] && kill -0 "$EXISTING_PID" 2>/dev/null; then
+        log "Another listener is already running (PID $EXISTING_PID). Exiting."
+        exit 0
+    fi
+    rm -f "$LOCK_FILE"
+fi
+
+echo $$ > "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"' EXIT
 
 log "=== Ping Listener Started ==="
 
@@ -22,7 +35,7 @@ log "=== Ping Listener Started ==="
 while true; do
     log "Subscribing to topic: ${NTFY_TOPIC}..."
 
-    curl -sN "${NTFY_URL}/sse" | while read -r line; do
+    curl -sN "${NTFY_URL}/sse?since=now" | while read -r line; do
         # SSE data lines start with "data: "
         case "$line" in
             data:*)
@@ -32,6 +45,7 @@ while true; do
                 # Extract the message body from JSON
                 # Using grep + sed since jq may not be available on Android
                 MESSAGE=$(echo "$PAYLOAD" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"$//')
+                EVENT_ID=$(echo "$PAYLOAD" | grep -o '"id":"[^"]*"' | sed 's/"id":"//;s/"$//')
 
                 if [ -z "$MESSAGE" ]; then
                     continue
@@ -43,6 +57,14 @@ while true; do
                 LOWER_MSG=$(echo "$MESSAGE" | tr '[:upper:]' '[:lower:]')
 
                 if [ "$LOWER_MSG" = "ping" ]; then
+                    if [ -n "$EVENT_ID" ] && [ "$EVENT_ID" = "$LAST_PING_ID" ]; then
+                        log "Duplicate ping event $EVENT_ID ignored"
+                        continue
+                    fi
+                    if [ -n "$EVENT_ID" ]; then
+                        LAST_PING_ID="$EVENT_ID"
+                    fi
+
                     log "Ping detected! Sending 'I'm on' reply..."
 
                     # Get battery level for extra context
