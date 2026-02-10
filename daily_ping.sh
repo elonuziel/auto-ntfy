@@ -6,7 +6,8 @@
 sleep 60
 
 # Configuration
-NTFY_URL="https://ntfy.sh/INSERT_YOUR_TOPIC_HERE"
+NTFY_TOPIC="YOUR_TOPIC_HERE"
+NTFY_URL="https://ntfy.sh/${NTFY_TOPIC}"
 LOG_FILE="/sdcard/battery_monitor.log"
 
 # Simple logging function
