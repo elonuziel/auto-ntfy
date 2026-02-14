@@ -48,12 +48,13 @@ while true; do
     TEMP=$(echo "$BATTERY_INFO" | grep temperature | awk '{print $2}')
     
     # Convert temperature (divide by 10)
-    TEMP_C=$((TEMP / 10))
+    TEMP_C=$((${TEMP:-0} / 10))
     
     # Determine status text
     case "$STATUS" in
         2) STATUS_TEXT="Charging" ;;
         3) STATUS_TEXT="Discharging" ;;
+        4) STATUS_TEXT="Not Charging" ;;
         5) STATUS_TEXT="Full" ;;
         *) STATUS_TEXT="Unknown" ;;
     esac
