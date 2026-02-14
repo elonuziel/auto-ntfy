@@ -65,7 +65,7 @@ while true; do
     log "Battery: $LEVEL% | Status: $STATUS_TEXT | Temp: ${TEMP_C}C"
     
     # Send to ntfy.sh
-    curl -s \
+    curl -fsS \
         -H "Tags:battery" \
         -d "$MSG" \
         "$NTFY_URL" >> "$LOG_FILE" 2>&1

@@ -51,7 +51,7 @@ while true; do
     fi
     log "Subscribing to topic: ${NTFY_TOPIC} (since=${SINCE})..."
 
-    curl -sN "${NTFY_URL}/json?since=${SINCE}&poll=0" 2>> "$LOG_FILE" | while read -r line; do
+    curl -fNsS "${NTFY_URL}/json?since=${SINCE}&poll=0" 2>> "$LOG_FILE" | while read -r line; do
         # Skip empty lines and non-message events
         EVENT=$(echo "$line" | grep -o '"event":"[^"]*"' | sed 's/"event":"//;s/"$//')
         if [ "$EVENT" != "message" ]; then
@@ -100,7 +100,7 @@ while true; do
             # Retry up to 3 times
             R=0; SENT=false
             while [ $R -lt 3 ]; do
-                curl -s -m 10 \
+                curl -fsS -m 10 \
                     -H "Tags:white_check_mark" \
                     -d "$REPLY" \
                     "$NTFY_URL" > /dev/null 2>&1
