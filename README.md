@@ -20,7 +20,7 @@ Lightweight shell scripts for Android that keep you connected to your device via
 ## Prerequisites
 
 - An Android device (root recommended for background persistence)
-- `curl` installed (comes with Termux or can be added via `pkg install curl`)
+- root (twrp+magisk is favorable)
 - A [ntfy.sh](https://ntfy.sh) topic
 
 ## Setup
@@ -38,22 +38,11 @@ NTFY_TOPIC="YOUR_TOPIC_HERE"   # ← replace with your own topic
 
 ```sh
 # Copy scripts to the device
-adb push daily_ping.sh /data/local/tmp/
-adb push ping_listener.sh /data/local/tmp/
+via twrp, adb push path\to\scrip.sh /data/adb/service.d
 
 # Make executable
-adb shell chmod +x /data/local/tmp/daily_ping.sh
-adb shell chmod +x /data/local/tmp/ping_listener.sh
+adb shell chmod +x /path/to/script/in/device.sh (permission 755)
 ```
-
-Or if using **Termux**, just clone the repo directly:
-
-```sh
-git clone https://github.com/YOUR_USER/auto-ntfy.git
-cd auto-ntfy
-chmod +x *.sh
-```
-
 ### 3. Run
 
 ```sh
@@ -64,7 +53,7 @@ chmod +x *.sh
 ./ping_listener.sh &
 ```
 
-> **Tip:** In Termux, run `termux-wake-lock` first to prevent Android from killing the processes.
+> **Tip:** In service.d with magisk, it'll run automatically after boot 
 
 ## Usage
 
